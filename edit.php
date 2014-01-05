@@ -23,9 +23,9 @@
  */
 
 require('../../config.php');
-require_once("$CFG->dirroot/enrol/relationship/edit_form.php");
-require_once("$CFG->dirroot/enrol/relationship/locallib.php");
-require_once("$CFG->dirroot/group/lib.php");
+require_once($CFG->dirroot . '/enrol/relationship/edit_form.php');
+require_once($CFG->dirroot . '/enrol/relationship/locallib.php');
+require_once($CFG->dirroot . '/group/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 $instanceid = optional_param('id', 0, PARAM_INT);
@@ -62,6 +62,7 @@ if ($instanceid) {
     $instance->enrol      = 'relationship';
     $instance->customint1 = ''; // relationship id.
     $instance->customint2 = 0;  // Optional group id.
+    $instance->customint3 = 0;  // Optional enrol id.
 }
 
 // Try and make the manage instances node on the navigation active.
@@ -82,10 +83,12 @@ if ($mform->is_cancelled()) {
         $instance->name         = $data->name;
         $instance->status       = $data->status;
         $instance->customint2   = $data->customint2;
+        $instance->customint3   = $data->customint3;
         $instance->timemodified = time();
         $DB->update_record('enrol', $instance);
     }  else {
-        $enrol->add_instance($course, array('name'=>$data->name, 'status'=>$data->status, 'customint1'=>$data->customint1, 'customint2'=>$data->customint2));
+        $enrol->add_instance($course, array('name'=>$data->name, 'status'=>$data->status, 'customint1'=>$data->customint1,
+                                            'customint2'=>$data->customint2, 'customint3'=>$data->customint3));
     }
     $trace = new null_progress_trace();
     enrol_relationship_sync($trace, $course->id);

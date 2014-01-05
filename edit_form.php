@@ -24,12 +24,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once("$CFG->libdir/formslib.php");
+require_once($CFG->libdir . '/formslib.php');
+require_once($CFG->dirroot . '/enrol/relationship/locallib.php');
 
 class enrol_relationship_edit_form extends moodleform {
 
     function definition() {
-        global $CFG, $DB;
+        global $DB;
 
         $mform  = $this->_form;
 
@@ -77,9 +78,16 @@ class enrol_relationship_edit_form extends moodleform {
             $mform->addRule('customint1', get_string('required'), 'required', null, 'client');
         }
 
-        $options_group = array(1 => get_string('yes'),
-                               0 => get_string('no'));
-        $mform->addElement('select', 'customint2', get_string('onlysyncgroups', 'enrol_relationship'), $options_group);
+        $options_group = array(RELATIONSHIP_SYNC_USERS_AND_GROUPS => get_string('syncusersandgroups', 'enrol_relationship'),
+                               RELATIONSHIP_ONLY_SYNC_GROUPS      => get_string('onlysyncgroups', 'enrol_relationship'),
+                               RELATIONSHIP_ONLY_SYNC_USERS      => get_string('onlysyncusers', 'enrol_relationship'));
+        $mform->addElement('select', 'customint2', get_string('sync', 'enrol_relationship'), $options_group);
+
+        $options_unenrol = array(
+            ENROL_EXT_REMOVED_UNENROL        => get_string('extremovedunenrol', 'enrol'),
+            ENROL_EXT_REMOVED_KEEP           => get_string('extremovedkeep', 'enrol'),
+            ENROL_EXT_REMOVED_SUSPEND        => get_string('extremovedsuspend', 'enrol'));
+        $mform->addElement('select', 'customint3', get_string('unenrolaction', 'enrol_relationship'), $options_unenrol);
 
         $mform->addElement('hidden', 'courseid', null);
         $mform->setType('courseid', PARAM_INT);

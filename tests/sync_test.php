@@ -64,12 +64,9 @@ class enrol_relationship_testcase extends advanced_testcase {
         $this->assertNotEmpty($managerrole);
 
         $cat1 = $this->getDataGenerator()->create_category();
-        $cat2 = $this->getDataGenerator()->create_category();
 
         $course1 = $this->getDataGenerator()->create_course(array('category'=>$cat1->id));
         $course2 = $this->getDataGenerator()->create_course(array('category'=>$cat1->id));
-        $course3 = $this->getDataGenerator()->create_course(array('category'=>$cat2->id));
-        $course4 = $this->getDataGenerator()->create_course(array('category'=>$cat2->id));
         $maninstance1 = $DB->get_record('enrol', array('courseid'=>$course1->id, 'enrol'=>'manual'), '*', MUST_EXIST);
 
         $user1 = $this->getDataGenerator()->create_user();
@@ -78,8 +75,6 @@ class enrol_relationship_testcase extends advanced_testcase {
         $user4 = $this->getDataGenerator()->create_user();
 
         $relationship1 = $this->getDataGenerator()->create_relationship(array('contextid'=>context_coursecat::instance($cat1->id)->id));
-        $relationship2 = $this->getDataGenerator()->create_relationship(array('contextid'=>context_coursecat::instance($cat2->id)->id));
-        $relationship3 = $this->getDataGenerator()->create_relationship();
 
         $this->enable_plugin();
 

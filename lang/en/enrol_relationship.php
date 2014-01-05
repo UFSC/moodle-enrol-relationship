@@ -25,11 +25,14 @@
 $string['addgroup'] = 'Add to group';
 $string['ajaxmore'] = 'More...';
 $string['assignrole'] = 'Assign role';
+$string['sync'] = 'Sync';
 $string['onlysyncgroups'] = 'Only sync groups';
+$string['onlysyncusers'] = 'Only sync users';
+$string['syncusersandgroups'] = 'Sync users and groups';
 $string['relationship'] = 'Relationship';
 $string['relationshipsearch'] = 'Search';
 $string['relationship:config'] = 'Configure relationship instances';
-$string['relationship:unenrol'] = 'Unenrol suspended users';
+$string['unenrolaction'] = 'Unenrol suspended users';
 $string['instanceexists'] = 'relationship is already synchronised with selected role';
 $string['pluginname'] = 'Relationship sync';
 $string['pluginname_desc'] = 'Relationship enrolment plugin synchronises relationship members with course participants.';

@@ -26,22 +26,33 @@
 defined('MOODLE_INTERNAL') || die();
 
 $observers = array(
+    array(
+        'eventname' => '\local_relationship\event\relationship_updated',
+        'callback' => 'enrol_relationship_handler::updated',
+        'includefile' => '/enrol/relationship/locallib.php'
+    ),
 
     array(
-        'eventname' => '\core\event\relationship_member_added',
+        'eventname' => '\local_relationship\event\relationshipgroup_member_added',
         'callback' => 'enrol_relationship_handler::member_added',
         'includefile' => '/enrol/relationship/locallib.php'
     ),
 
     array(
-        'eventname' => '\core\event\relationship_member_removed',
+        'eventname' => '\local_relationship\event\relationshipgroup_member_removed',
         'callback' => 'enrol_relationship_handler::member_removed',
         'includefile' => '/enrol/relationship/locallib.php'
     ),
 
     array(
-        'eventname' => '\core\event\relationship_deleted',
-        'callback' => 'enrol_relationship_handler::deleted',
+        'eventname' => '\local_relationship\event\relationshipgroup_deleted',
+        'callback' => 'enrol_relationship_handler::group_deleted',
+        'includefile' => '/enrol/relationship/locallib.php'
+    ),
+
+    array(
+        'eventname' => '\local_relationship\event\relationshipgroup_updated',
+        'callback' => 'enrol_relationship_handler::group_updated',
         'includefile' => '/enrol/relationship/locallib.php'
     ),
 );

@@ -135,7 +135,7 @@ class enrol_relationship_plugin extends enrol_plugin {
     public function cron() {
         global $CFG;
 
-        require_once("$CFG->dirroot/enrol/relationship/locallib.php");
+        require_once($CFG->dirroot . '/enrol/relationship/locallib.php');
         $trace = new null_progress_trace();
         enrol_relationship_sync($trace);
         $trace->finished();
@@ -165,7 +165,7 @@ class enrol_relationship_plugin extends enrol_plugin {
 
         parent::update_status($instance, $newstatus);
 
-        require_once("$CFG->dirroot/enrol/relationship/locallib.php");
+        require_once($CFG->dirroot . '/enrol/relationship/locallib.php');
         $trace = new null_progress_trace();
         enrol_relationship_sync($trace, $instance->courseid);
         $trace->finished();
@@ -209,19 +209,6 @@ class enrol_relationship_plugin extends enrol_plugin {
     }
 
     /**
-     * Returns a button to enrol a relationship or its users through the manual enrolment plugin.
-     *
-     * This function also adds a quickenrolment JS ui to the page so that users can be enrolled
-     * via AJAX.
-     *
-     * @param course_enrolment_manager $manager
-     * @return enrol_user_button
-     */
-    public function get_manual_enrol_button(course_enrolment_manager $manager) {
-        return false;
-    }
-
-    /**
      * Restore instance and map settings.
      *
      * @param restore_enrolments_structure_step $step
@@ -252,7 +239,7 @@ class enrol_relationship_plugin extends enrol_plugin {
             }
             $step->set_mapping('enrol', $oldid, $instanceid);
 
-            require_once("$CFG->dirroot/enrol/relationship/locallib.php");
+            require_once($CFG->dirroot . '/enrol/relationship/locallib.php');
             $trace = new null_progress_trace();
             enrol_relationship_sync($trace, $course->id);
             $trace->finished();
@@ -269,7 +256,7 @@ class enrol_relationship_plugin extends enrol_plugin {
             }
             $step->set_mapping('enrol', $oldid, $instanceid);
 
-            require_once("$CFG->dirroot/enrol/relationship/locallib.php");
+            require_once($CFG->dirroot . '/enrol/relationship/locallib.php');
             $trace = new null_progress_trace();
             enrol_relationship_sync($trace, $course->id);
             $trace->finished();
