@@ -42,21 +42,14 @@ class enrol_relationship_plugin extends enrol_plugin {
         if (empty($instance)) {
             $enrol = $this->get_name();
             return get_string('pluginname', 'enrol_'.$enrol);
-
         } else if (empty($instance->name)) {
             $enrol = $this->get_name();
-            $relationship = $DB->get_record('relationship', array('id'=>$instance->customint1));
-            if (!$relationship) {
+            if($relationship = $DB->get_record('relationship', array('id'=>$instance->customint1))) {
+                $relationshipname = format_string($relationship->name, true, array('context'=>context::instance_by_id($relationship->contextid)));
+                return get_string('pluginname', 'enrol_'.$enrol) . ' (' . $relationshipname . ')';
+            } else {
                 return get_string('pluginname', 'enrol_'.$enrol);
             }
-            $relationshipname = format_string($relationship->name, true, array('context'=>context::instance_by_id($relationship->contextid)));
-            if ($role = $DB->get_record('role', array('id'=>$instance->roleid))) {
-                $role = role_get_name($role, context_course::instance($instance->courseid, IGNORE_MISSING));
-                return get_string('pluginname', 'enrol_'.$enrol) . ' (' . $relationshipname . ' - ' . $role .')';
-            } else {
-                return get_string('pluginname', 'enrol_'.$enrol) . ' (' . $relationshipname . ')';
-            }
-
         } else {
             return format_string($instance->name, true, array('context'=>context_course::instance($instance->courseid)));
         }
@@ -172,23 +165,6 @@ class enrol_relationship_plugin extends enrol_plugin {
     }
 
     /**
-     * Does this plugin allow manual unenrolment of a specific user?
-     * Yes, but only if user suspended...
-     *
-     * @param stdClass $instance course enrol instance
-     * @param stdClass $ue record from user_enrolments table
-     *
-     * @return bool - true means user with 'enrol/xxx:unenrol' may unenrol this user, false means nobody may touch this user enrolment
-     */
-    public function allow_unenrol_user(stdClass $instance, stdClass $ue) {
-        if ($ue->status == ENROL_USER_SUSPENDED) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Gets an array of the user enrolment actions.
      *
      * @param course_enrolment_manager $manager
@@ -225,13 +201,8 @@ class enrol_relationship_plugin extends enrol_plugin {
             return;
         }
 
-        // TODO: necessário ajustar para relationship
-        if (!empty($data->customint2)) {
-            $data->customint2 = $step->get_mappingid('group', $data->customint2);
-        }
-
-        if ($data->roleid and $DB->record_exists('relationship', array('id'=>$data->customint1))) {
-            $instance = $DB->get_record('enrol', array('roleid'=>$data->roleid, 'customint1'=>$data->customint1, 'courseid'=>$course->id, 'enrol'=>$this->get_name()));
+        if ($DB->record_exists('relationship', array('id'=>$data->customint1))) {
+            $instance = $DB->get_record('enrol', array('customint1'=>$data->customint1, 'courseid'=>$course->id, 'enrol'=>$this->get_name()));
             if ($instance) {
                 $instanceid = $instance->id;
             } else {
@@ -243,24 +214,6 @@ class enrol_relationship_plugin extends enrol_plugin {
             $trace = new null_progress_trace();
             enrol_relationship_sync($trace, $course->id);
             $trace->finished();
-
-        } else if ($this->get_config('unenrolaction') == ENROL_EXT_REMOVED_SUSPENDNOROLES) {
-            $data->customint1 = 0;
-            $instance = $DB->get_record('enrol', array('roleid'=>$data->roleid, 'customint1'=>$data->customint1, 'courseid'=>$course->id, 'enrol'=>$this->get_name()));
-
-            if ($instance) {
-                $instanceid = $instance->id;
-            } else {
-                $data->status = ENROL_INSTANCE_DISABLED;
-                $instanceid = $this->add_instance($course, (array)$data);
-            }
-            $step->set_mapping('enrol', $oldid, $instanceid);
-
-            require_once($CFG->dirroot . '/enrol/relationship/locallib.php');
-            $trace = new null_progress_trace();
-            enrol_relationship_sync($trace, $course->id);
-            $trace->finished();
-
         } else {
             $step->set_mapping('enrol', $oldid, 0);
         }
@@ -278,16 +231,8 @@ class enrol_relationship_plugin extends enrol_plugin {
     public function restore_user_enrolment(restore_enrolments_structure_step $step, $data, $instance, $userid, $oldinstancestatus) {
         global $DB;
 
-        if ($this->get_config('unenrolaction') != ENROL_EXT_REMOVED_SUSPENDNOROLES) {
-            // Enrolments were already synchronised in restore_instance(), we do not want any suspended leftovers.
-            return;
-        }
-
-        // ENROL_EXT_REMOVED_SUSPENDNOROLES means all previous enrolments are restored
-        // but without roles and suspended.
-
         if (!$DB->record_exists('user_enrolments', array('enrolid'=>$instance->id, 'userid'=>$userid))) {
-            $this->enrol_user($instance, $userid, null, $data->timestart, $data->timeend, ENROL_USER_SUSPENDED);
+            $this->enrol_user($instance, $userid, null, $data->timestart, $data->timeend, $oldinstancestatus);
         }
     }
 
