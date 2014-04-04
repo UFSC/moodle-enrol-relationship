@@ -182,7 +182,6 @@ function enrol_relationship_enrol_users(progress_trace $trace, $courseid = NULL,
     $params['courseid']        = $courseid;
     $params['userid']          = $userid;
     $params['relationshipgroupid'] = $relationshipgroupid;
-    $params['categorycontext'] = CONTEXT_COURSECAT;
     $params['coursecontext']   = CONTEXT_COURSE;
     $params['suspended']       = ENROL_USER_SUSPENDED;
     $params['statusenabled']   = ENROL_INSTANCE_ENABLED;
@@ -193,13 +192,12 @@ function enrol_relationship_enrol_users(progress_trace $trace, $courseid = NULL,
               FROM {relationship} rl
               JOIN {relationship_groups} rg ON (rg.relationshipid = rl.id {$onegroup})
               JOIN {relationship_members} rm ON (rm.relationshipgroupid = rg.id {$oneuser})
-              JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :categorycontext)
-              JOIN {course} c ON (c.category = catx.instanceid {$onecourse})
-              JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = :coursecontext)
               JOIN {user} u ON (u.id = rm.userid AND u.deleted = 0 AND u.suspended = 0)
               JOIN {role} r ON (r.id = rm.roleid)
-              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND e.courseid = c.id AND
+              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
                                  e.status = :statusenabled AND e.customint2 != :onlysyncgroups)
+              JOIN {course} c ON (c.id = e.courseid {$onecourse})
+              JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = :coursecontext)
          LEFT JOIN {user_enrolments} ue ON (ue.enrolid = e.id AND ue.userid = rm.userid)
              WHERE ue.id IS NULL OR ue.status = :suspended";
     $rs = $DB->get_recordset_sql($sql, $params);
@@ -237,7 +235,6 @@ function enrol_relationship_assign_roles(progress_trace $trace, $courseid = NULL
     $params['courseid']        = $courseid;
     $params['userid']          = $userid;
     $params['relationshipid'] = $relationshipid;
-    $params['categorycontext'] = CONTEXT_COURSECAT;
     $params['coursecontext']   = CONTEXT_COURSE;
     $params['statusenabled']   = ENROL_INSTANCE_ENABLED;
     $params['onlysyncgroups']  = RELATIONSHIP_ONLY_SYNC_GROUPS;
@@ -246,13 +243,12 @@ function enrol_relationship_assign_roles(progress_trace $trace, $courseid = NULL
               FROM {relationship} rl
               JOIN {relationship_groups} rg ON (rg.relationshipid = rl.id)
               JOIN {relationship_members} rm ON (rm.relationshipgroupid = rg.id {$oneuser})
-              JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :categorycontext)
-              JOIN {course} c ON (c.category = catx.instanceid {$onecourse})
-              JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = :coursecontext)
               JOIN {user} u ON (u.id = rm.userid AND u.deleted = 0 AND u.suspended = 0)
               JOIN {role} r ON (r.id = rm.roleid)
-              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND e.courseid = c.id AND
+              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
                                  e.status = :statusenabled AND e.customint2 != :onlysyncgroups)
+              JOIN {course} c ON (c.id = e.courseid {$onecourse})
+              JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = :coursecontext)
          LEFT JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.userid = rm.userid AND
                                              ra.roleid = rm.roleid AND ra.itemid = e.id)
              WHERE ra.id IS NULL {$onerelat}";
@@ -293,22 +289,18 @@ function enrol_relationship_unenrol_users(progress_trace $trace, $courseid = NUL
     $params['suspended']       = ENROL_USER_SUSPENDED;
     $params['statusenabled']   = ENROL_INSTANCE_ENABLED;
     $params['onlysyncgroups']  = RELATIONSHIP_ONLY_SYNC_GROUPS;
-    $params['jcategorycontext'] = CONTEXT_COURSECAT;
     $params['enrolkeepremoved'] = ENROL_EXT_REMOVED_KEEP;
 
     // Unenrol as necessary.
     $sql = "SELECT ue.*, e.courseid
               FROM {relationship} rl
               JOIN {relationship_groups} rg ON (rg.relationshipid = rl.id {$onegroup})
-              JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :categorycontext)
-              JOIN {course} c ON (c.category = catx.instanceid {$onecourse})
-              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND e.courseid = c.id AND
+              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
                                  e.status = :statusenabled AND e.customint3 != :enrolkeepremoved)
+              JOIN {course} c ON (c.id = e.courseid {$onecourse})
               JOIN {user_enrolments} ue ON (ue.enrolid = e.id {$oneuser})
          LEFT JOIN (SELECT DISTINCT rg.relationshipid, rm.userid
                       FROM {relationship} rl
-                      JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :jcategorycontext)
-                      JOIN {course} c ON (c.category = catx.instanceid $jonecourse)
                       JOIN {relationship_groups} rg ON (rg.relationshipid = rl.id {$jonegroup})
                       JOIN {relationship_members} rm ON (rm.relationshipgroupid = rg.id {$joneuser})) jrm
                 ON (jrm.relationshipid = rl.id AND jrm.userid = ue.userid)
@@ -359,8 +351,6 @@ function enrol_relationship_unassign_roles(progress_trace $trace, $courseid = NU
     $params['juserid']         = $userid;
     $params['relationshipid']  = $relationshipid;
     $params['jrelationshipid'] = $relationshipid;
-    $params['categorycontext']  = CONTEXT_COURSECAT;
-    $params['jcategorycontext'] = CONTEXT_COURSECAT;
     $params['coursecontext']    = CONTEXT_COURSE;
     $params['statusenabled']    = ENROL_INSTANCE_ENABLED;
     $params['onlysyncgroups']   = RELATIONSHIP_ONLY_SYNC_GROUPS;
@@ -369,16 +359,15 @@ function enrol_relationship_unassign_roles(progress_trace $trace, $courseid = NU
     // Unenrol as necessary.
     $sql = "SELECT e.courseid, ra.contextid, ra.userid, ra.roleid, ra.itemid
               FROM {relationship} rl
-              JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :categorycontext)
-              JOIN {course} c ON (c.category = catx.instanceid {$onecourse})
-              JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = :coursecontext)
-              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND e.courseid = c.id AND
+              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
                                  e.status = :statusenabled AND e.customint3 != :enrolkeepremoved)
+              JOIN {course} c ON (c.id = e.courseid {$onecourse})
+              JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = :coursecontext)
               JOIN {role_assignments} ra ON (ra.contextid = ctx.id AND ra.component = 'enrol_relationship' AND ra.itemid = e.id)
          LEFT JOIN (SELECT DISTINCT c.id as courseid, rm.userid, rm.roleid
                       FROM {relationship} rl
-                      JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :jcategorycontext)
-                      JOIN {course} c ON (c.category = catx.instanceid $jonecourse)
+                      JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship')
+                      JOIN {course} c ON (c.id = e.courseid {$onecourse})
                       JOIN {relationship_groups} rg ON (rg.relationshipid = rl.id)
                       JOIN {relationship_members} rm ON (rm.relationshipgroupid = rg.id {$joneuser})
                       {$jonerelat}) jrm
@@ -405,7 +394,6 @@ function enrol_relationship_create_groupings_and_groups(progress_trace $trace, $
     $params['courseid']        = $courseid;
     $params['userid']          = $userid;
     $params['relationshipgroupid'] = $relationshipgroupid;
-    $params['categorycontext'] = CONTEXT_COURSECAT;
     $params['suspended']       = ENROL_USER_SUSPENDED;
     $params['statusenabled']   = ENROL_INSTANCE_ENABLED;
     $params['jstatusenabled']   = ENROL_INSTANCE_ENABLED;
@@ -413,10 +401,9 @@ function enrol_relationship_create_groupings_and_groups(progress_trace $trace, $
 
     $sql = "SELECT g.id, g.idnumber, g.name, g.courseid, CONCAT('relationship_', rl.id, '_', rg.id) AS new_idnumber
               FROM {relationship} rl
-              JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :categorycontext)
-              JOIN {course} c ON (c.category = catx.instanceid {$onecourse})
-              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND e.courseid = c.id AND
+              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
                                  e.status = :statusenabled AND e.customint2 != :onlysyncusers)
+              JOIN {course} c ON (c.id = e.courseid {$onecourse})
               JOIN {groups} g ON (g.courseid = c.id AND g.idnumber LIKE CONCAT('relationship_', rl.id, '_%'))
          LEFT JOIN {relationship_groups} rg ON (rg.relationshipid = rl.id AND rg.name = g.name AND
                                                 g.idnumber != CONCAT('relationship_', rl.id, '_',rg.id))
@@ -440,10 +427,9 @@ function enrol_relationship_create_groupings_and_groups(progress_trace $trace, $
     // create new groupings
     $sql = "SELECT CONCAT('relationship_', rl.id) as idnumber, rl.name, e.courseid
               FROM {relationship} rl
-              JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :categorycontext)
-              JOIN {course} c ON (c.category = catx.instanceid {$onecourse})
-              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND e.courseid = c.id AND
+              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
                                  e.status = :statusenabled AND e.customint2 != :onlysyncusers)
+              JOIN {course} c ON (c.id = e.courseid {$onecourse})
          LEFT JOIN {groupings} gr ON (gr.courseid = c.id AND gr.idnumber = CONCAT('relationship_', rl.id))
              WHERE gr.id IS NULL
                AND EXISTS (SELECT 1
@@ -470,10 +456,9 @@ function enrol_relationship_create_groupings_and_groups(progress_trace $trace, $
     $sql = "SELECT CONCAT('relationship_', rl.id, '_', rg.id) as idnumber, rg.name, e.courseid
               FROM {relationship} rl
               JOIN {relationship_groups} rg ON (rg.relationshipid = rl.id {$onegroup})
-              JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :categorycontext)
-              JOIN {course} c ON (c.category = catx.instanceid {$onecourse})
-              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND e.courseid = c.id AND
+              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
                                  e.status = :statusenabled AND e.customint2 != :onlysyncusers)
+              JOIN {course} c ON (c.id = e.courseid {$onecourse})
          LEFT JOIN {groups} g ON (g.courseid = c.id AND g.idnumber = CONCAT('relationship_', rl.id, '_', rg.id))
              WHERE g.id IS NULL
                AND EXISTS (SELECT 1
@@ -499,10 +484,9 @@ function enrol_relationship_create_groupings_and_groups(progress_trace $trace, $
     $sql = "SELECT gr.id as groupingid, gr.idnumber as grouping_idnumber, g.id as groupid, g.idnumber as group_idnumber
               FROM {relationship} rl
               JOIN {relationship_groups} rg ON (rg.relationshipid = rl.id {$onegroup})
-              JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :categorycontext)
-              JOIN {course} c ON (c.category = catx.instanceid {$onecourse})
-              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND e.courseid = c.id AND
+              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
                                  e.status = :statusenabled AND e.customint2 != :onlysyncusers)
+              JOIN {course} c ON (c.id = e.courseid {$onecourse})
               JOIN {groupings} gr ON (gr.courseid = c.id AND gr.idnumber = CONCAT('relationship_', rl.id))
               JOIN {groups} g ON (g.courseid = c.id AND g.idnumber = CONCAT('relationship_', rl.id, '_', rg.id))
          LEFT JOIN {groupings_groups} gg ON (gg.groupingid = gr.id AND gg.groupid = g.id)
@@ -525,17 +509,15 @@ function enrol_relationship_rename_groupings(progress_trace $trace, $courseid = 
     $params = array();
     $params['courseid']        = $courseid;
     $params['relationshipid']  = $relationshipid;
-    $params['categorycontext'] = CONTEXT_COURSECAT;
     $params['statusenabled']   = ENROL_INSTANCE_ENABLED;
     $params['onlysyncusers']   = RELATIONSHIP_ONLY_SYNC_USERS;
 
     // change grouping names when necessary
     $sql = "SELECT gr.id, rl.name, e.courseid, gr.idnumber
               FROM {relationship} rl
-              JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :categorycontext)
-              JOIN {course} c ON (c.category = catx.instanceid {$onecourse})
-              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND e.courseid = c.id AND
+              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
                                  e.status = :statusenabled AND e.customint2 != :onlysyncusers)
+              JOIN {course} c ON (c.id = e.courseid {$onecourse})
               JOIN {groupings} gr ON (gr.courseid = c.id AND gr.idnumber = CONCAT('relationship_', rl.id))
              WHERE gr.name != rl.name {$onerel}";
     $rs = $DB->get_recordset_sql($sql, $params); 
@@ -561,7 +543,6 @@ function enrol_relationship_rename_groups(progress_trace $trace, $courseid = NUL
     $params = array();
     $params['courseid']        = $courseid;
     $params['relationshipgroupid'] = $relationshipgroupid;
-    $params['categorycontext'] = CONTEXT_COURSECAT;
     $params['statusenabled']   = ENROL_INSTANCE_ENABLED;
     $params['onlysyncusers']   = RELATIONSHIP_ONLY_SYNC_USERS;
 
@@ -569,10 +550,9 @@ function enrol_relationship_rename_groups(progress_trace $trace, $courseid = NUL
     $sql = "SELECT g.id, rg.name, e.courseid, g.idnumber
               FROM {relationship} rl
               JOIN {relationship_groups} rg ON (rg.relationshipid = rl.id {$onegroup})
-              JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :categorycontext)
-              JOIN {course} c ON (c.category = catx.instanceid {$onecourse})
-              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND e.courseid = c.id AND
+              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
                                  e.status = :statusenabled AND e.customint2 != :onlysyncusers)
+              JOIN {course} c ON (c.id = e.courseid {$onecourse})
               JOIN {groups} g ON (g.courseid = c.id AND g.idnumber = CONCAT('relationship_', rl.id, '_', rg.id))
              WHERE g.name != rg.name";
     $rs = $DB->get_recordset_sql($sql, $params);
@@ -596,7 +576,6 @@ function enrol_relationship_unassign_groups_from_groupings(progress_trace $trace
 
     $params = array();
     $params['courseid']        = $courseid;
-    $params['categorycontext'] = CONTEXT_COURSECAT;
     $params['suspended']       = ENROL_USER_SUSPENDED;
     $params['statusenabled']   = ENROL_INSTANCE_ENABLED;
     $params['onlysyncusers']   = RELATIONSHIP_ONLY_SYNC_USERS;
@@ -605,10 +584,9 @@ function enrol_relationship_unassign_groups_from_groupings(progress_trace $trace
     // unassing old groups from groupings
     $sql = "SELECT gr.id as groupingid, gr.idnumber as grouping_idnumber, g.id as groupid, g.idnumber as group_idnumber
               FROM {relationship} rl
-              JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :categorycontext)
-              JOIN {course} c ON (c.category = catx.instanceid {$onecourse})
-              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND e.courseid = c.id AND
+              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
                                  e.status = :statusenabled AND e.customint2 != :onlysyncusers AND e.customint3 != :enrolkeepremoved)
+              JOIN {course} c ON (c.id = e.courseid {$onecourse})
               JOIN {groupings} gr ON (gr.courseid = c.id AND gr.idnumber = CONCAT('relationship_', rl.id))
               JOIN {groupings_groups} gg ON (gg.groupingid = gr.id)
               JOIN {groups} g ON (g.courseid = c.id AND g.id = gg.groupid)
@@ -644,7 +622,6 @@ function enrol_relationship_remove_member_groups(progress_trace $trace, $coursei
     $params['userid']          = $userid;
     $params['relationshipgroupid'] = $relationshipgroupid;
     $params['jrelationshipgroupid'] = $relationshipgroupid;
-    $params['categorycontext'] = CONTEXT_COURSECAT;
     $params['coursecontext']   = CONTEXT_COURSE;
     $params['suspended']       = ENROL_USER_SUSPENDED;
     $params['statusenabled']   = ENROL_INSTANCE_ENABLED;
@@ -656,10 +633,9 @@ function enrol_relationship_remove_member_groups(progress_trace $trace, $coursei
     $sql = "SELECT gm.*, e.courseid, g.name AS groupname
               FROM {relationship} rl
               {$join}
-              JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :categorycontext)
-              JOIN {course} c ON (c.category = catx.instanceid {$onecourse})
-              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND e.courseid = c.id AND
+              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
                                  e.status = :statusenabled AND e.customint3 = :unenrolremoved)
+              JOIN {course} c ON (c.id = e.courseid {$onecourse})
               JOIN {groupings} gr ON (gr.courseid = c.id AND gr.idnumber = CONCAT('relationship_', rl.id))
               JOIN {groupings_groups} gg ON (gg.groupingid = gr.id)
               JOIN {groups} g ON (g.courseid = c.id AND g.id = gg.groupid AND {$jgroups})
@@ -687,7 +663,6 @@ function enrol_relationship_add_member_groups(progress_trace $trace, $courseid =
     $params['courseid']        = $courseid;
     $params['userid']          = $userid;
     $params['relationshipgroupid'] = $relationshipgroupid;
-    $params['categorycontext'] = CONTEXT_COURSECAT;
     $params['coursecontext']   = CONTEXT_COURSE;
     $params['suspended']       = ENROL_USER_SUSPENDED;
     $params['statusenabled']   = ENROL_INSTANCE_ENABLED;
@@ -700,10 +675,9 @@ function enrol_relationship_add_member_groups(progress_trace $trace, $courseid =
               FROM {relationship} rl
               JOIN {relationship_groups} rg ON (rg.relationshipid = rl.id {$onegroup})
               JOIN {relationship_members} rm ON (rm.relationshipgroupid = rg.id)
-              JOIN {context} catx ON (catx.id = rl.contextid AND catx.contextlevel = :categorycontext)
-              JOIN {course} c ON (c.category = catx.instanceid {$onecourse})
-              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND e.courseid = c.id AND
+              JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
                                  e.status = :statusenabled AND e.customint2 != :onlysyncusers)
+              JOIN {course} c ON (c.id = e.courseid {$onecourse})
               JOIN {enrol} ew ON (ew.courseid = c.id AND ew.status = :jstatusenabled)
               JOIN {user_enrolments} ue ON (ue.enrolid = ew.id AND ue.userid = rm.userid AND ue.status = :useractive {$oneuser})
               JOIN {groupings} gr ON (gr.courseid = c.id AND gr.idnumber = CONCAT('relationship_', rl.id))
