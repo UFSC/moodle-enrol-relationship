@@ -85,8 +85,7 @@ class enrol_relationship_edit_form extends moodleform {
 
         $options_unenrol = array(
             ENROL_EXT_REMOVED_UNENROL        => get_string('extremovedunenrol', 'enrol'),
-            ENROL_EXT_REMOVED_KEEP           => get_string('extremovedkeep', 'enrol'),
-            ENROL_EXT_REMOVED_SUSPEND        => get_string('extremovedsuspend', 'enrol'));
+            ENROL_EXT_REMOVED_KEEP           => get_string('extremovedkeep', 'enrol'));
         $mform->addElement('select', 'customint3', get_string('unenrolaction', 'enrol_relationship'), $options_unenrol);
 
         $mform->addElement('hidden', 'courseid', null);

@@ -25,6 +25,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+/*
+relationship_deleted.php
+*/
+
 $observers = array(
     array(
         'eventname' => '\local_relationship\event\relationship_updated',
@@ -41,6 +45,12 @@ $observers = array(
     array(
         'eventname' => '\local_relationship\event\relationshipgroup_member_removed',
         'callback' => 'enrol_relationship_handler::member_removed',
+        'includefile' => '/enrol/relationship/locallib.php'
+    ),
+
+    array(
+        'eventname' => '\local_relationship\event\relationshipgroup_created',
+        'callback' => 'enrol_relationship_handler::group_created',
         'includefile' => '/enrol/relationship/locallib.php'
     ),
 
