@@ -78,10 +78,12 @@ class enrol_relationship_edit_form extends moodleform {
             $mform->addRule('customint1', get_string('required'), 'required', null, 'client');
         }
 
-        $options_group = array(RELATIONSHIP_SYNC_USERS_AND_GROUPS => get_string('syncusersandgroups', 'enrol_relationship'),
-                               RELATIONSHIP_ONLY_SYNC_GROUPS      => get_string('onlysyncgroups', 'enrol_relationship'),
-                               RELATIONSHIP_ONLY_SYNC_USERS      => get_string('onlysyncusers', 'enrol_relationship'));
-        $mform->addElement('select', 'customint2', get_string('sync', 'enrol_relationship'), $options_group);
+        $options_group = array(RELATIONSHIP_ONLY_SYNC_GROUPS      => get_string('onlysyncgroups', 'enrol_relationship'),
+                               RELATIONSHIP_ONLY_SYNC_USERS       => get_string('onlysyncusers', 'enrol_relationship'),
+                               RELATIONSHIP_SYNC_USERS_AND_GROUPS => get_string('syncusersandgroups', 'enrol_relationship'));
+        $mform->addElement('select', 'customint2', get_string('synctype', 'enrol_relationship'), $options_group);
+        $mform->addHelpButton('customint2', 'synctype', 'enrol_relationship');
+        $mform->setDefault('customint2', RELATIONSHIP_SYNC_USERS_AND_GROUPS);
 
         $options_unenrol = array(
             ENROL_EXT_REMOVED_UNENROL        => get_string('extremovedunenrol', 'enrol'),

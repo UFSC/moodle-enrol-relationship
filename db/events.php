@@ -31,6 +31,12 @@ relationship_deleted.php
 
 $observers = array(
     array(
+        'eventname' => '\core\event\user_enrolment_created',
+        'callback' => 'enrol_relationship_handler::user_enrolment',
+        'includefile' => '/enrol/relationship/locallib.php'
+    ),
+
+    array(
         'eventname' => '\local_relationship\event\relationship_updated',
         'callback' => 'enrol_relationship_handler::updated',
         'includefile' => '/enrol/relationship/locallib.php'

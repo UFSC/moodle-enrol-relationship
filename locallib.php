@@ -52,6 +52,24 @@ require_once($CFG->dirroot . '/group/lib.php');
 class enrol_relationship_handler {
 
     /**
+     * Event processor - user_enrolment.
+     * @param \core\event\user_enrolment_created $event
+     * @return bool
+     */
+    public static function user_enrolment(\core\event\user_enrolment_created $event) {
+        global $DB;
+
+        if (!enrol_is_enabled('relationship')) {
+            return true;
+        }
+        if($DB->record_exists('enrol', array('enrol'=>'relationship', 'courseid'=>$event->courseid, 'customint2'=>RELATIONSHIP_ONLY_SYNC_GROUPS))) {
+            $trace = new null_progress_trace();
+            enrol_relationship_add_member_groups($trace, $event->courseid, $event->relateduserid);
+        }
+        return true;
+    }
+
+    /**
      * Event processor - relationship updated.
      * @param \local_relationship\event\relationship_updated $event
      * @return bool

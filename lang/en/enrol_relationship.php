@@ -25,10 +25,16 @@
 $string['addgroup'] = 'Add to group';
 $string['ajaxmore'] = 'More...';
 $string['assignrole'] = 'Assign role';
-$string['sync'] = 'Type of sync';
-$string['onlysyncgroups'] = 'Only sync groups';
-$string['onlysyncusers'] = 'Only sync users';
-$string['syncusersandgroups'] = 'Sync users and groups';
+$string['synctype'] = 'Type of sync';
+$string['synctype_help'] = 'Select what type of syncronization must be done:<BR><UL>
+    <LI><B>Only synchronize user enrolments</B>: all users from the relationship will be enrolled in the course with their respective roles.</LI>
+    <LI><B>Only synchronize groups and their members</B>: all relationship groups will be created in the course and their members will be added 
+    to the respective groups since they are already enrolled in the course. The groups will be added to a grouping.</LI>
+    <LI><B>Synchronize both user and groups</B>: both type of synchronization will take place.</LI>
+    </UL>';
+$string['onlysyncgroups'] = 'Only synchronize groups and their members';
+$string['onlysyncusers'] = 'Only synchronize user enrolments';
+$string['syncusersandgroups'] = 'Synchronize both users and groups';
 $string['relationship'] = 'Relationship';
 $string['relationshipsearch'] = 'Search';
 $string['relationship:config'] = 'Configure relationship instances';
