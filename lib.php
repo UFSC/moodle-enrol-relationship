@@ -219,6 +219,20 @@ class enrol_relationship_plugin extends enrol_plugin {
         }
     }
 
+    public function delete_instance($instance) {
+        global $DB;
+
+        parent::delete_instance($instance);
+
+        $sql = "SELECT id
+                  FROM {groups}
+                 WHERE courseid = {$instance->courseid} AND idnumber LIKE 'relationship_{$instance->customint1}_%'";
+        $groups = $DB->get_records_sql($sql);
+        foreach($groups AS $g) {
+            groups_delete_group($g->id);
+        }
+    }
+
     /**
      * Restore user enrolment.
      *

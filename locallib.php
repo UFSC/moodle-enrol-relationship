@@ -139,7 +139,7 @@ class enrol_relationship_handler {
         }
         $trace = new null_progress_trace();
         enrol_relationship_remove_member_groups($trace, NULL, NULL, $event->objectid);
-        enrol_relationship_unassign_groups_from_groupings($trace, NULL);
+        enrol_relationship_unassign_groups_from_groupings($trace, NULL, $event->objectid);
         return true;
     }
 
@@ -452,31 +452,40 @@ function enrol_relationship_rename_groups(progress_trace $trace, $courseid = NUL
     }
 }
 
-function enrol_relationship_unassign_groups_from_groupings(progress_trace $trace, $courseid = NULL) {
+function enrol_relationship_unassign_groups_from_groupings(progress_trace $trace, $courseid = NULL, $relationshipgroupid = NULL) {
     global $DB;
 
     $trace->output('-- Unassingning groups from groupings and delete them ...');
 
     $onecourse = $courseid ? "AND c.id = :courseid" : "";
+    if($relationshipgroupid) {
+        $join = '';
+        $where = '';
+        $jgroups = "= CONCAT('relationship_', rl.id, '_', :relationshipgroupid)";
+    } else {
+        $join = "LEFT JOIN {relationship_groups} rg ON (rg.relationshipid = rl.id and g.idnumber = CONCAT('relationship_', rl.id, '_', rg.id))";
+        $where = 'WHERE rg.id IS NULL';
+        $jgroups = "LIKE CONCAT('relationship_', rl.id, '_%')";
+    }
 
     $params = array();
     $params['courseid']        = $courseid;
+    $params['relationshipgroupid'] = $relationshipgroupid;
     $params['suspended']       = ENROL_USER_SUSPENDED;
     $params['statusenabled']   = ENROL_INSTANCE_ENABLED;
     $params['onlysyncusers']   = RELATIONSHIP_ONLY_SYNC_USERS;
-    $params['enrolkeepremoved'] = ENROL_EXT_REMOVED_KEEP;
 
     // unassing old groups from groupings and delete them
     $sql = "SELECT gr.id as groupingid, gr.idnumber as grouping_idnumber, g.id as groupid, g.idnumber as group_idnumber
               FROM {relationship} rl
               JOIN {enrol} e ON (e.customint1 = rl.id AND e.enrol = 'relationship' AND
-                                 e.status = :statusenabled AND e.customint2 != :onlysyncusers AND e.customint3 != :enrolkeepremoved)
+                                 e.status = :statusenabled AND e.customint2 != :onlysyncusers)
               JOIN {course} c ON (c.id = e.courseid {$onecourse})
               JOIN {groupings} gr ON (gr.courseid = c.id AND gr.idnumber = CONCAT('relationship_', rl.id))
               JOIN {groupings_groups} gg ON (gg.groupingid = gr.id)
-              JOIN {groups} g ON (g.id = gg.groupid AND g.idnumber LIKE CONCAT('relationship_', rl.id, '_%'))
-         LEFT JOIN {relationship_groups} rg ON (rg.relationshipid = rl.id and g.idnumber = CONCAT('relationship_', rl.id, '_', rg.id))
-             WHERE rg.id IS NULL";
+              JOIN {groups} g ON (g.id = gg.groupid AND g.idnumber {$jgroups})
+              {$join}
+              {$where}";
     $rs = $DB->get_recordset_sql($sql, $params);
     foreach($rs as $g) {
         $trace->output("unassigning group '{$g->group_idnumber}' ({$g->groupid}) to grouping '{$g->grouping_idnumber}' ($g->groupingid)", 1);

@@ -44,3 +44,6 @@ $string['instanceexists'] = 'relationship is already synchronised with selected 
 $string['pluginname'] = 'Relationship sync';
 $string['pluginname_desc'] = 'Relationship enrolment plugin synchronises relationship members with course participants.';
 $string['status'] = 'Active';
+$string['same_names'] = 'Há grupos com mesmo nome no relacionamento: \'{$a}\'';
+$string['no_enrol_permission'] = 'Há papéis no relacionamento para os quais você não em permissão de atribuição: \'{$a}\'';
+$string['unknown_role'] = 'Papel desconhecido: {$a}';

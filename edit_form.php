@@ -105,4 +105,49 @@ class enrol_relationship_edit_form extends moodleform {
         $this->set_data($instance);
     }
 
+    function validation($data, $files) {
+        global $DB;
+
+        $errors = parent::validation($data, $files);
+
+        $params = array('customint1'=>$data['customint1'], 'courseid'=>$data['courseid'], 'id'=>$data['id']);
+        if ($DB->record_exists_select('enrol', "customint1 = :customint1 AND courseid = :courseid AND enrol = 'relationship' AND id <> :id", $params)) {
+            $errors['customint1'] = get_string('instanceexists', 'enrol_cohort');
+        }
+
+        $groups = groups_get_all_groups($data['courseid']);
+        $relationship_groups = $DB->get_records('relationship_groups', array('relationshipid'=>$data['customint1']));
+        $same_names = array();
+        foreach($relationship_groups AS $rg) {
+            foreach($groups AS $gr) {
+                if($gr->name == $rg->name) {
+                    $same_names[] = $gr->name;
+                }
+            }
+        }
+        if(!empty($same_names)) {
+            $errors['customint1'] = get_string('same_names', 'enrol_relationship', implode(', ', $same_names));
+        }
+
+        $relationship_cohorts = $DB->get_records('relationship_cohorts', array('relationshipid'=>$data['customint1']));
+        $role_names = array();
+        $coursecontext = context_course::instance($data['courseid']);
+        $roles = get_assignable_roles($coursecontext);
+        foreach($relationship_cohorts AS $rc) {
+            if(!isset($roles[$rc->roleid])) {
+                if($r = $DB->get_record('role', array('id'=>$rc->roleid))) {
+                    $role_names[] = role_get_name($r);
+                } else {
+                    $errors['customint1'] = get_string('unknown_role', 'enrol_relationship', $rc->roleid);
+                    $role_names = array();
+                    break;
+                }
+            }
+        }
+        if(!empty($role_names)) {
+            $errors['customint1'] = get_string('no_enrol_permission', 'enrol_relationship', implode(', ', $role_names));
+        }
+
+        return $errors;
+    }
 }
