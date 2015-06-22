@@ -1,0 +1,12 @@
+{
+    "name": "moodle-ufsc/enrol_relationship",
+    "description": "Cria grupos e inscrevem usuarios com papel configuravel e etc",
+    "license": "GPLv3",
+    "type": "moodle-enrol",
+    "require": {
+      "composer/installers": "~1.0"
+    },
+    "extra": {
+      "installer-name": "relationship"
+    }
+}
