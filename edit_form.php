@@ -120,7 +120,8 @@ class enrol_relationship_edit_form extends moodleform {
         $same_names = array();
         foreach($relationship_groups AS $rg) {
             foreach($groups AS $gr) {
-                if($gr->name == $rg->name) {
+                $id_number = "relationship_{$rg->relationshipid}_{$rg->id}";
+                if($gr->name == $rg->name && $gr->idnumber != $id_number) {
                     $same_names[] = $gr->name;
                 }
             }
