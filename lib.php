@@ -31,6 +31,17 @@ defined('MOODLE_INTERNAL') || die();
  */
 class enrol_relationship_plugin extends enrol_plugin {
     /**
+     * Is it possible to delete enrol instance via standard UI?
+     *
+     * @param stdClass $instance
+     * @return bool
+     */
+    public function can_delete_instance($instance) {
+        $context = context_course::instance($instance->courseid);
+        return has_capability('enrol/relationship:config', $context);
+    }
+
+    /**
      * Returns localised name of enrol instance.
      *
      * @param stdClass $instance (null is accepted too)
@@ -66,6 +77,17 @@ class enrol_relationship_plugin extends enrol_plugin {
         }
         // Multiple instances supported - multiple parent courses linked.
         return new moodle_url('/enrol/relationship/edit.php', array('courseid'=>$courseid));
+    }
+
+    /**
+     * Is it possible to hide/show enrol instance via standard UI?
+     *
+     * @param stdClass $instance
+     * @return bool
+     */
+    public function can_hide_show_instance($instance) {
+        $context = context_course::instance($instance->courseid);
+        return has_capability('enrol/relationship:config', $context);
     }
 
     /**
