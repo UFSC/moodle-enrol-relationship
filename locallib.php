@@ -29,6 +29,9 @@ define('RELATIONSHIP_ONLY_SYNC_GROUPS', 1);
 define('RELATIONSHIP_ONLY_SYNC_USERS', 2);
 
 /*
+customint1
+    relationship id
+
 customint2
     RELATIONSHIP_SYNC_USERS_AND_GROUPS
     RELATIONSHIP_ONLY_SYNC_GROUPS
