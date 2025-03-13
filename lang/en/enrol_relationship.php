@@ -49,3 +49,4 @@ $string['status'] = 'Active';
 $string['same_names'] = 'There are already groups in the course with the same name as relationship group names: \'{$a}\'';
 $string['no_enrol_permission'] = 'There are roles within the relationship you don\'t have permission to assing to users in this course: \'{$a}\'';
 $string['unknown_role'] = 'Unknown role: {$a}';
+$string['enrolrelationshipsynctask'] = 'Relationship enrolment sync task';

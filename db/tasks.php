@@ -15,18 +15,24 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * relationship enrolment plugin version specification.
- *
- * @package    enrol_relationship
- * @copyright  2010 Petr Skoda {@link http://skodak.org}
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Task definition for enrol_relationship.
+ * @author    Roberto Silvino <roberto.silvino@ufsc.br>
+ * @copyright Roberto Silvino
+ * @package   enrol_relationship
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2025031301;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2013110500;        // Requires this Moodle version
-$plugin->component = 'enrol_relationship';    // Full name of the plugin (used for diagnostics)
-$plugin->dependencies = array(
-    'local_relationship' => 2014051200,
+$tasks = array(
+    array(
+        'classname' => '\enrol_relationship\task\enrol_relationship_sync',
+        'blocking' => 0,
+        'minute' => '*/5',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+        'disabled' => 0
+    )
 );
