@@ -24,9 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2025031301;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->version   = 2025061001;        // The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires  = 2013110500;        // Requires this Moodle version
 $plugin->component = 'enrol_relationship';    // Full name of the plugin (used for diagnostics)
 $plugin->dependencies = array(
-    'local_relationship' => 2014051200,
+    'local_relationship' => 2026052202,
 );
