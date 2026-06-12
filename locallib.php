@@ -270,18 +270,26 @@ function enrol_relationship_unenrol_users(progress_trace $trace, $courseid = NUL
     $params['enrolkeepremoved'] = ENROL_EXT_REMOVED_KEEP;
 
     // Unenrol as necessary.
+    // A role só deve ser removida se o usuário não for membro de NENHUM cohort do
+    // relationship com aquele mesmo papel. O NOT EXISTS evita falsos órfãos quando
+    // vários cohorts compartilham o mesmo papel: um LEFT JOIN por-cohort marcaria o
+    // usuário para remoção pelas linhas dos demais cohorts de mesmo papel onde ele
+    // não está, mesmo estando em um deles.
     $sql = "SELECT DISTINCT ue.enrolid, ue.userid, ue.status, e.courseid, ra.roleid, ra.contextid
               FROM {enrol} e
               JOIN {course} c ON (c.id = e.courseid {$onecourse})
               JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = :contextcourse)
               JOIN {user_enrolments} ue ON (ue.enrolid = e.id {$oneuser})
               JOIN {role_assignments} ra ON (ra.userid = ue.userid AND ra.contextid = ctx.id AND ra.itemid = e.id AND ra.component = 'enrol_relationship')
-         LEFT JOIN {relationship} rl ON (rl.id = e.customint1)
-         LEFT JOIN {relationship_cohorts} rc ON (rc.relationshipid = rl.id AND rc.roleid = ra.roleid)
-         LEFT JOIN {relationship_members} rm ON (rm.relationshipcohortid = rc.id AND rm.userid = ue.userid)
              WHERE e.enrol = 'relationship'
                AND e.customint3 != :enrolkeepremoved
-               AND (ISNULL(rm.id) OR e.customint2 = :onlysyncgroups)";
+               AND (e.customint2 = :onlysyncgroups
+                    OR NOT EXISTS (SELECT 1
+                                     FROM {relationship_cohorts} rc
+                                     JOIN {relationship_members} rm ON (rm.relationshipcohortid = rc.id)
+                                    WHERE rc.relationshipid = e.customint1
+                                      AND rc.roleid = ra.roleid
+                                      AND rm.userid = ue.userid))";
     $rs = $DB->get_recordset_sql($sql, $params);
     foreach($rs as $r) {
         if (!isset($instances[$r->enrolid])) {

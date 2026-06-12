@@ -42,15 +42,10 @@ class enrol_relationship_scenario_testcase extends enrol_relationship_helper_tes
     public function test_three_groups_with_overlapping_managers_are_fully_synced() {
         global $DB;
 
-        // BUG CONHECIDO (a corrigir): enrol_relationship_unenrol_users desinscreve
-        // indevidamente usuários quando o relationship tem múltiplos cohorts com o
-        // MESMO papel. O LEFT JOIN em relationship_cohorts casa rc.roleid = ra.roleid
-        // para todos os cohorts de mesmo papel; como o usuário pertence só a um deles,
-        // os demais geram ISNULL(rm.id) e o disparam para unenrol no mesmo sync que o
-        // inscreveu. Professores/managers (1 cohort por papel) não são afetados; os 3
-        // cohorts de estudante (A/B/C) sim. Remover este skip quando o bug for corrigido.
-        $this->markTestSkipped('Documenta bug em unenrol_users com múltiplos cohorts de mesmo papel.');
-
+        // Regressão: enrol_relationship_unenrol_users desinscrevia usuários
+        // indevidamente quando o relationship tinha múltiplos cohorts com o MESMO
+        // papel (aqui, 3 cohorts de estudante A/B/C). Corrigido com um NOT EXISTS
+        // que checa membership em qualquer cohort de mesmo papel.
         $managerroleid = $DB->get_field('role', 'id', array('shortname' => 'manager'));
 
         // --- 5 cohorts ligados ao relationship, cada um com seu papel. ---
