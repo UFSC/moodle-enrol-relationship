@@ -167,24 +167,6 @@ class enrol_relationship_locallib_testcase extends enrol_relationship_helper_tes
         $this->assertTrue($this->is_user_enrolled($instance, $user->id));
     }
 
-    public function test_unenrol_users_suspends_when_action_is_suspend() {
-        global $DB;
-
-        list($cohort, $rcid) = $this->link_cohort();
-        $rgid = $this->add_group();
-        // O form não expõe SUSPEND, mas a lógica existe: setamos customint3 direto.
-        $instance = $this->create_instance(RELATIONSHIP_SYNC_USERS_AND_GROUPS, ENROL_EXT_REMOVED_SUSPEND);
-        $user = $this->getDataGenerator()->create_user();
-        $memberid = $this->add_member($rgid, $rcid, $user->id);
-
-        enrol_relationship_enrol_users($this->trace());
-        $DB->delete_records('relationship_members', array('id' => $memberid));
-        enrol_relationship_unenrol_users($this->trace());
-
-        $ue = $DB->get_record('user_enrolments', array('enrolid' => $instance->id, 'userid' => $user->id));
-        $this->assertEquals(ENROL_USER_SUSPENDED, $ue->status);
-    }
-
     public function test_unenrol_users_only_unassigns_role_when_user_has_other_role_via_same_instance() {
         global $DB;
 
@@ -449,29 +431,6 @@ class enrol_relationship_locallib_testcase extends enrol_relationship_helper_tes
 
         $this->assertFalse($this->is_user_enrolled($instance, $user->id));
         $this->assertFalse($this->has_role_assignment($user->id, $this->studentroleid, $instance));
-    }
-
-    public function test_transition_suspend_then_reactivate_via_membership() {
-        global $DB;
-
-        list($cohort, $rcid) = $this->link_cohort();
-        $rgid = $this->add_group();
-        $instance = $this->create_instance(RELATIONSHIP_SYNC_USERS_AND_GROUPS, ENROL_EXT_REMOVED_SUSPEND);
-        $user = $this->getDataGenerator()->create_user();
-        $memberid = $this->add_member($rgid, $rcid, $user->id);
-
-        enrol_relationship_sync($this->trace(), $this->course->id);
-        // Sai do relationship -> suspenso.
-        $DB->delete_records('relationship_members', array('id' => $memberid));
-        enrol_relationship_sync($this->trace(), $this->course->id);
-        $ue = $DB->get_record('user_enrolments', array('enrolid' => $instance->id, 'userid' => $user->id));
-        $this->assertEquals(ENROL_USER_SUSPENDED, $ue->status);
-
-        // Volta ao relationship -> o sync reativa (ramo de "unsuspend" em enrol_users).
-        $this->add_member($rgid, $rcid, $user->id);
-        enrol_relationship_sync($this->trace(), $this->course->id);
-        $ue = $DB->get_record('user_enrolments', array('enrolid' => $instance->id, 'userid' => $user->id));
-        $this->assertEquals(ENROL_USER_ACTIVE, $ue->status);
     }
 
     // ---------------------------------------------------------------------

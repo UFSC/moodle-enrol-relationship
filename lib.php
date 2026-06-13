@@ -246,10 +246,16 @@ class enrol_relationship_plugin extends enrol_plugin {
 
         parent::delete_instance($instance);
 
+        // Apaga os grupos desta instância. O prefixo literal é escapado com
+        // sql_like_escape() para que os '_' do idnumber não sejam tratados como
+        // curinga — caso contrário o padrão do relationship 5 casaria também com
+        // os grupos do relationship 59 (perda de dados).
+        $prefix = $DB->sql_like_escape("relationship_{$instance->customint1}_");
+        $params = array('courseid' => $instance->courseid, 'pattern' => $prefix . '%');
         $sql = "SELECT id
                   FROM {groups}
-                 WHERE courseid = {$instance->courseid} AND idnumber LIKE 'relationship_{$instance->customint1}_%'";
-        $groups = $DB->get_records_sql($sql);
+                 WHERE courseid = :courseid AND " . $DB->sql_like('idnumber', ':pattern');
+        $groups = $DB->get_records_sql($sql, $params);
         foreach($groups AS $g) {
             groups_delete_group($g->id);
         }

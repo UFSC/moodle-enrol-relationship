@@ -40,7 +40,6 @@ customint2
 customint3
     ENROL_EXT_REMOVED_UNENROL
     ENROL_EXT_REMOVED_KEEP
-    ENROL_EXT_REMOVED_SUSPEND
 */
 
 require_once($CFG->dirroot . '/enrol/locallib.php');
@@ -270,40 +269,39 @@ function enrol_relationship_unenrol_users(progress_trace $trace, $courseid = NUL
     $params['enrolkeepremoved'] = ENROL_EXT_REMOVED_KEEP;
 
     // Unenrol as necessary.
-    $sql = "SELECT DISTINCT ue.enrolid, ue.userid, ue.status, e.courseid, ra.roleid, ra.contextid
+    // A role só deve ser removida se o usuário não for membro de NENHUM cohort do
+    // relationship com aquele mesmo papel. O NOT EXISTS evita falsos órfãos quando
+    // vários cohorts compartilham o mesmo papel: um LEFT JOIN por-cohort marcaria o
+    // usuário para remoção pelas linhas dos demais cohorts de mesmo papel onde ele
+    // não está, mesmo estando em um deles.
+    $sql = "SELECT DISTINCT ue.enrolid, ue.userid, e.courseid, ra.roleid, ra.contextid
               FROM {enrol} e
               JOIN {course} c ON (c.id = e.courseid {$onecourse})
               JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = :contextcourse)
               JOIN {user_enrolments} ue ON (ue.enrolid = e.id {$oneuser})
               JOIN {role_assignments} ra ON (ra.userid = ue.userid AND ra.contextid = ctx.id AND ra.itemid = e.id AND ra.component = 'enrol_relationship')
-         LEFT JOIN {relationship} rl ON (rl.id = e.customint1)
-         LEFT JOIN {relationship_cohorts} rc ON (rc.relationshipid = rl.id AND rc.roleid = ra.roleid)
-         LEFT JOIN {relationship_members} rm ON (rm.relationshipcohortid = rc.id AND rm.userid = ue.userid)
              WHERE e.enrol = 'relationship'
                AND e.customint3 != :enrolkeepremoved
-               AND (ISNULL(rm.id) OR e.customint2 = :onlysyncgroups)";
+               AND (e.customint2 = :onlysyncgroups
+                    OR NOT EXISTS (SELECT 1
+                                     FROM {relationship_cohorts} rc
+                                     JOIN {relationship_members} rm ON (rm.relationshipcohortid = rc.id)
+                                    WHERE rc.relationshipid = e.customint1
+                                      AND rc.roleid = ra.roleid
+                                      AND rm.userid = ue.userid))";
     $rs = $DB->get_recordset_sql($sql, $params);
     foreach($rs as $r) {
         if (!isset($instances[$r->enrolid])) {
             $instances[$r->enrolid] = $DB->get_record('enrol', array('id'=>$r->enrolid));
         }
         $instance = $instances[$r->enrolid];
-        switch ($instance->customint3) {
-            case ENROL_EXT_REMOVED_UNENROL:
-                $trace->output("unenrolling: {$r->userid} ==> {$instance->courseid} via relationship {$instance->customint1}", 1);
-                $cparams = array('userid'=>$r->userid, 'contextid'=>$r->contextid, 'itemid'=>$r->enrolid, 'component'=>'enrol_relationship');
-                if($DB->count_records('role_assignments', $cparams) > 1) {
-                    role_unassign($r->roleid, $r->userid, $r->contextid, 'enrol_relationship', $r->enrolid);
-                } else {
-                    $plugin->unenrol_user($instance, $r->userid);
-                }
-                break;
-            case ENROL_EXT_REMOVED_SUSPEND:
-                if ($r->status != ENROL_USER_SUSPENDED) {
-                    $trace->output("suspending: {$r->userid} ==> {$instance->courseid}", 1);
-                    $plugin->update_user_enrol($instance, $r->userid, ENROL_USER_SUSPENDED);
-                }
-                break;
+        // A query já exclui customint3 = KEEP; qualquer valor diferente de KEEP
+        // (incluindo valores legados) é tratado aqui como UNENROL.
+        $cparams = array('userid'=>$r->userid, 'contextid'=>$r->contextid, 'itemid'=>$r->enrolid, 'component'=>'enrol_relationship');
+        if($DB->count_records('role_assignments', $cparams) > 1) {
+            role_unassign($r->roleid, $r->userid, $r->contextid, 'enrol_relationship', $r->enrolid);
+        } else {
+            $plugin->unenrol_user($instance, $r->userid);
         }
     }
     $rs->close();

@@ -163,6 +163,92 @@ class enrol_relationship_lib_testcase extends enrol_relationship_helper_testcase
         $this->assertFalse($DB->record_exists('enrol', array('id' => $instance->id)));
     }
 
+    /**
+     * Isolamento: delete_instance só pode apagar os grupos da PRÓPRIA instância.
+     * Os grupos de outro relationship no mesmo curso e quaisquer grupos manuais
+     * devem permanecer intactos. Guarda o escopo do WHERE (courseid + idnumber)
+     * contra refactors do SQL.
+     */
+    public function test_delete_instance_only_removes_its_own_groups() {
+        global $DB;
+
+        // Relationship 1 (o da fixture) com grupo e instância, sincronizado.
+        list($cohort1, $rc1) = $this->link_cohort();
+        $rg1 = $this->add_group('Grupo R1');
+        $instance1 = $this->create_instance();
+        enrol_relationship_sync($this->trace(), $this->course->id);
+        $g1 = $this->moodle_group_id($rg1);
+        $this->assertNotEmpty($g1);
+
+        // Relationship 2 no MESMO curso, com seu próprio grupo e instância.
+        $rel2 = relationship_add_relationship((object) array(
+            'contextid' => $this->catcontext->id, 'name' => 'Relationship 2'));
+        $cohort2 = $this->getDataGenerator()->create_cohort(array('contextid' => $this->catcontext->id));
+        relationship_add_cohort((object) array(
+            'relationshipid' => $rel2, 'cohortid' => $cohort2->id, 'roleid' => $this->studentroleid,
+            'allowdupsingroups' => 0, 'uniformdistribution' => 0));
+        $rg2 = relationship_add_group((object) array(
+            'relationshipid' => $rel2, 'name' => 'Grupo R2', 'userlimit' => 0, 'uniformdistribution' => 0));
+        $instance2id = $this->plugin->add_instance($this->course, array(
+            'customint1' => $rel2, 'customint2' => RELATIONSHIP_SYNC_USERS_AND_GROUPS,
+            'customint3' => ENROL_EXT_REMOVED_UNENROL));
+        $instance2 = $DB->get_record('enrol', array('id' => $instance2id));
+        enrol_relationship_sync($this->trace(), $this->course->id);
+        $g2 = $DB->get_field('groups', 'id',
+            array('courseid' => $this->course->id, 'idnumber' => "relationship_{$rel2}_{$rg2}"));
+        $this->assertNotEmpty($g2);
+
+        // Grupo manual, sem relação com o plugin.
+        $manual = $this->getDataGenerator()->create_group(array(
+            'courseid' => $this->course->id, 'name' => 'Grupo manual', 'idnumber' => 'turma_x'));
+
+        // Apaga apenas a instância 1.
+        $this->plugin->delete_instance($instance1);
+
+        // Só o grupo da instância 1 é removido; os demais permanecem.
+        $this->assertFalse($DB->record_exists('groups', array('id' => $g1)),
+            'o grupo do relationship 1 deveria ter sido apagado');
+        $this->assertTrue($DB->record_exists('groups', array('id' => $g2)),
+            'o grupo do relationship 2 NÃO deveria ser afetado');
+        $this->assertTrue($DB->record_exists('groups', array('id' => $manual->id)),
+            'o grupo manual NÃO deveria ser afetado');
+        $this->assertFalse($DB->record_exists('enrol', array('id' => $instance1->id)));
+        $this->assertTrue($DB->record_exists('enrol', array('id' => $instance2->id)),
+            'a instância 2 NÃO deveria ser removida');
+    }
+
+    /**
+     * Regressão: delete_instance NÃO pode apagar grupos de um relationship cujo id
+     * comece com o id desta instância. O LIKE 'relationship_{id}_%' trata os '_'
+     * como curingas; sem escapá-los, o padrão do relationship 5 casa com grupos do
+     * relationship 59 (o curinga casa o '9'), causando perda de dados.
+     *
+     * Este teste FALHA com o SQL atual e passa após o uso de sql_like().
+     */
+    public function test_delete_instance_does_not_overmatch_groups_of_prefixed_relationship() {
+        global $DB;
+
+        // Instância cujo relationship (sintético) tem id 5.
+        $instance = $DB->get_record('enrol', array('id' => $this->plugin->add_instance($this->course, array(
+            'customint1' => 5,
+            'customint2' => RELATIONSHIP_SYNC_USERS_AND_GROUPS,
+            'customint3' => ENROL_EXT_REMOVED_UNENROL))));
+
+        // Grupo DESTA instância (relationship 5) — deve ser apagado.
+        $own = $this->getDataGenerator()->create_group(array(
+            'courseid' => $this->course->id, 'name' => 'Grupo do 5', 'idnumber' => 'relationship_5_111'));
+        // Grupo de OUTRO relationship (id 59, começa com 5) — deve permanecer.
+        $foreign = $this->getDataGenerator()->create_group(array(
+            'courseid' => $this->course->id, 'name' => 'Grupo do 59', 'idnumber' => 'relationship_59_222'));
+
+        $this->plugin->delete_instance($instance);
+
+        $this->assertFalse($DB->record_exists('groups', array('id' => $own->id)),
+            'o grupo do relationship 5 deveria ter sido apagado');
+        $this->assertTrue($DB->record_exists('groups', array('id' => $foreign->id)),
+            'o grupo do relationship 59 NÃO deveria ser apagado (over-match do underscore curinga)');
+    }
+
     // ---------------------------------------------------------------------
     // get_user_enrolment_actions
     // ---------------------------------------------------------------------
