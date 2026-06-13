@@ -16,6 +16,8 @@
 
 require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
 
+use Behat\Mink\Exception\ExpectationException;
+
 /**
  * Step definitions de Behat para enrol_relationship.
  *
@@ -157,7 +159,9 @@ class behat_enrol_relationship extends behat_base {
                  WHERE e.courseid = :courseid AND e.enrol = 'relationship'";
         $actual = $DB->count_records_sql($sql, array('courseid' => $course->id));
         if ((int) $actual !== (int) $count) {
-            throw new \Exception("Esperado {$count} inscrito(s) via relationship no curso {$shortname}, encontrado {$actual}.");
+            throw new ExpectationException(
+                "Esperado {$count} inscrito(s) via relationship no curso {$shortname}, encontrado {$actual}.",
+                $this->getSession());
         }
     }
 
@@ -175,11 +179,13 @@ class behat_enrol_relationship extends behat_base {
         $course = $DB->get_record('course', array('shortname' => $shortname), '*', MUST_EXIST);
         $group = $DB->get_record('groups', array('courseid' => $course->id, 'name' => $groupname));
         if (!$group) {
-            throw new \Exception("Grupo '{$groupname}' não foi criado no curso {$shortname}.");
+            throw new ExpectationException("Grupo '{$groupname}' não foi criado no curso {$shortname}.",
+                $this->getSession());
         }
         $members = $DB->count_records('groups_members', array('groupid' => $group->id));
         if ((int) $members !== (int) $count) {
-            throw new \Exception("Esperado {$count} membro(s) no grupo '{$groupname}', encontrado {$members}.");
+            throw new ExpectationException("Esperado {$count} membro(s) no grupo '{$groupname}', encontrado {$members}.",
+                $this->getSession());
         }
     }
 
@@ -196,7 +202,8 @@ class behat_enrol_relationship extends behat_base {
             "courseid = :courseid AND " . $DB->sql_like('idnumber', ':pat'),
             array('courseid' => $course->id, 'pat' => 'relationship\_%'));
         if ($count > 0) {
-            throw new \Exception("Esperado nenhum grupo de relationship no curso {$shortname}, encontrado {$count}.");
+            throw new ExpectationException("Esperado nenhum grupo de relationship no curso {$shortname}, encontrado {$count}.",
+                $this->getSession());
         }
     }
 
@@ -246,7 +253,8 @@ class behat_enrol_relationship extends behat_base {
      */
     public function user_should_be_enrolled_in_course($username, $shortname) {
         if (!$this->is_enrolled_via_relationship($username, $shortname)) {
-            throw new \Exception("Esperado que {$username} estivesse inscrito via relationship no curso {$shortname}.");
+            throw new ExpectationException("Esperado que {$username} estivesse inscrito via relationship no curso {$shortname}.",
+                $this->getSession());
         }
     }
 
@@ -257,7 +265,8 @@ class behat_enrol_relationship extends behat_base {
      */
     public function user_should_not_be_enrolled_in_course($username, $shortname) {
         if ($this->is_enrolled_via_relationship($username, $shortname)) {
-            throw new \Exception("Esperado que {$username} NÃO estivesse inscrito via relationship no curso {$shortname}.");
+            throw new ExpectationException("Esperado que {$username} NÃO estivesse inscrito via relationship no curso {$shortname}.",
+                $this->getSession());
         }
     }
 
