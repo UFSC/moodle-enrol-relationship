@@ -7,7 +7,7 @@ Adaptado de `enrol_cohort`. Cada instância liga um curso a um *relationship*; a
 ## Requisitos
 
 - Moodle com versão mínima `2013110500` (declarado em `version.php`).
-- Plugin `local_relationship` instalado (versão mínima `2014051200`).
+- Plugin `local_relationship` instalado (versão mínima `2026052202`).
 - Acesso ao usuário do servidor web (`www-data` ou equivalente) para rodar o sync via CLI.
 
 ## Instalação
