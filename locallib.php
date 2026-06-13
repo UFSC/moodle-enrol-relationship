@@ -274,7 +274,7 @@ function enrol_relationship_unenrol_users(progress_trace $trace, $courseid = NUL
     // vários cohorts compartilham o mesmo papel: um LEFT JOIN por-cohort marcaria o
     // usuário para remoção pelas linhas dos demais cohorts de mesmo papel onde ele
     // não está, mesmo estando em um deles.
-    $sql = "SELECT DISTINCT ue.enrolid, ue.userid, ue.status, e.courseid, ra.roleid, ra.contextid
+    $sql = "SELECT DISTINCT ue.enrolid, ue.userid, e.courseid, ra.roleid, ra.contextid
               FROM {enrol} e
               JOIN {course} c ON (c.id = e.courseid {$onecourse})
               JOIN {context} ctx ON (ctx.instanceid = c.id AND ctx.contextlevel = :contextcourse)

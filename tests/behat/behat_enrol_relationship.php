@@ -289,30 +289,4 @@ class behat_enrol_relationship extends behat_base {
         $this->getSession()->visit($this->locate_path('/course/view.php?id=' . $course->id));
         $this->wait_for_pending_js();
     }
-
-    /**
-     * Visita a página de participantes do curso.
-     *
-     * @Given /^I am on the participants page of course "([^"]*)"$/
-     * @param string $shortname
-     */
-    public function i_am_on_the_participants_page_of_course($shortname) {
-        global $DB;
-        $course = $DB->get_record('course', array('shortname' => $shortname), '*', MUST_EXIST);
-        $this->getSession()->visit($this->locate_path('/user/index.php?id=' . $course->id));
-        $this->wait_for_pending_js();
-    }
-
-    /**
-     * Visita a página de grupos do curso.
-     *
-     * @Given /^I am on the groups page of course "([^"]*)"$/
-     * @param string $shortname
-     */
-    public function i_am_on_the_groups_page_of_course($shortname) {
-        global $DB;
-        $course = $DB->get_record('course', array('shortname' => $shortname), '*', MUST_EXIST);
-        $this->getSession()->visit($this->locate_path('/group/index.php?id=' . $course->id));
-        $this->wait_for_pending_js();
-    }
 }
