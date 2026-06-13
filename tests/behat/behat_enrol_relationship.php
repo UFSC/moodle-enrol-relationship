@@ -194,9 +194,10 @@ class behat_enrol_relationship extends behat_base {
     public function the_course_should_have_no_relationship_groups($shortname) {
         global $DB;
         $course = $DB->get_record('course', array('shortname' => $shortname), '*', MUST_EXIST);
+        $pat = $DB->sql_like_escape('relationship_') . '%';
         $count = $DB->count_records_select('groups',
             "courseid = :courseid AND " . $DB->sql_like('idnumber', ':pat'),
-            array('courseid' => $course->id, 'pat' => 'relationship\_%'));
+            array('courseid' => $course->id, 'pat' => $pat));
         if ($count > 0) {
             throw new ExpectationException("Esperado nenhum grupo de relationship no curso {$shortname}, encontrado {$count}.",
                 $this->getSession());
