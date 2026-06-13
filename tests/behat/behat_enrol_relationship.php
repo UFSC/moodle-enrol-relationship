@@ -36,15 +36,11 @@ use Behat\Mink\Exception\ExpectationException;
 class behat_enrol_relationship extends behat_base {
 
     /**
-     * Habilita o método de inscrição relationship pela própria UI de administração.
+     * Habilita o plugin de enrolment "relationship" para o cenário.
      *
-     * Importante: habilitar via set_config a partir do processo CLI do Behat NÃO é
-     * confiável aqui — o processo web (FPM) tem seu próprio cache de config e
-     * intermitentemente continua vendo o método desabilitado, fazendo o sync do
-     * edit.php retornar cedo (enrol_is_enabled() falso) e não inscrever ninguém.
-     * Clicar "Enable" na página de métodos passa pelo mesmo web tier que depois
-     * processa o edit.php, mantendo o cache consistente. Requer estar logado como
-     * admin.
+     * Observação: este step roda no processo CLI do Behat e habilita o plugin via
+     * set_config() (persistindo no banco). Se o seu ambiente tiver cache persistente
+     * de config no web tier, pode ser necessário habilitar via UI em vez deste step.
      *
      * @Given /^the relationship enrolment method is enabled$/
      */
