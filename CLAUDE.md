@@ -11,7 +11,7 @@ The working directory is the plugin itself; the surrounding tree (`../../`) is a
 ## Running things
 
 - **Manual sync (debug / immediate):** `sudo -u www-data php cli/sync.php [-v]` from this directory, or with the absolute path from Moodle root (`enrol/relationship/cli/sync.php`). Must run as the web server user.
-- **Cron sync:** registered in `version.php` (`$plugin->cron = 3600`); Moodle's cron invokes `enrol_relationship_plugin::cron()` → `enrol_relationship_sync()`.
+- **Scheduled task sync:** defined in `db/tasks.php` (`minute` = `*/5`); Moodle runs `\enrol_relationship\task\enrol_relationship_sync::execute()` → `enrol_relationship_sync()`.
 - No build, lint, or test tooling in this plugin.
 
 ## Architecture
