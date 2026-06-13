@@ -31,7 +31,7 @@ if [ -f "../../../../.env" ]; then
   source ../../../../.env
   set +a
 else
-  err "Arquivo ../../../../.env não encontrado."
+  warn "Arquivo ../../../../.env não encontrado (ok se você usar apenas .env local)."
 fi
 
 if [ -f ".env" ]; then
