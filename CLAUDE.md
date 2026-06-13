@@ -21,7 +21,7 @@ The working directory is the plugin itself; the surrounding tree (`../../`) is a
 Everything funnels into `enrol_relationship_sync()` in `locallib.php`. It runs eight steps in order, each its own function with the same `($trace, $courseid=NULL, ...)` signature so they can be invoked for one course/user/group or globally:
 
 1. `enrol_users` — enrol users present in `relationship_members` that aren't yet enrolled (or are suspended).
-2. `unenrol_users` — unenrol/suspend users no longer in the relationship, per `customint3`.
+2. `unenrol_users` — unenrol users no longer in the relationship, per `customint3`.
 3. `create_groupings_and_groups` — create the grouping for the relationship and one group per `relationship_groups` row, then link them.
 4. `rename_groupings` / `rename_groups` — propagate name changes from the source tables.
 5. `unassign_groups_from_groupings` — remove and delete groups whose source `relationship_groups` row was deleted.
@@ -43,7 +43,7 @@ Most SQL in `locallib.php` filters with `e.customint2 != :onlysyncgroups` or `!=
 
 - `customint1` — `relationship.id` (the source relationship).
 - `customint2` — sync mode (see above).
-- `customint3` — removal action: `ENROL_EXT_REMOVED_UNENROL` or `ENROL_EXT_REMOVED_KEEP` (the form only exposes these two; suspend logic exists in `unenrol_users` but is unreachable from the UI).
+- `customint3` — removal action: `ENROL_EXT_REMOVED_UNENROL` or `ENROL_EXT_REMOVED_KEEP` (the only two the form exposes and the only two `unenrol_users` handles).
 
 ### Group/grouping idnumber convention
 

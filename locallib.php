@@ -40,7 +40,6 @@ customint2
 customint3
     ENROL_EXT_REMOVED_UNENROL
     ENROL_EXT_REMOVED_KEEP
-    ENROL_EXT_REMOVED_SUSPEND
 */
 
 require_once($CFG->dirroot . '/enrol/locallib.php');
@@ -296,22 +295,14 @@ function enrol_relationship_unenrol_users(progress_trace $trace, $courseid = NUL
             $instances[$r->enrolid] = $DB->get_record('enrol', array('id'=>$r->enrolid));
         }
         $instance = $instances[$r->enrolid];
-        switch ($instance->customint3) {
-            case ENROL_EXT_REMOVED_UNENROL:
-                $trace->output("unenrolling: {$r->userid} ==> {$instance->courseid} via relationship {$instance->customint1}", 1);
-                $cparams = array('userid'=>$r->userid, 'contextid'=>$r->contextid, 'itemid'=>$r->enrolid, 'component'=>'enrol_relationship');
-                if($DB->count_records('role_assignments', $cparams) > 1) {
-                    role_unassign($r->roleid, $r->userid, $r->contextid, 'enrol_relationship', $r->enrolid);
-                } else {
-                    $plugin->unenrol_user($instance, $r->userid);
-                }
-                break;
-            case ENROL_EXT_REMOVED_SUSPEND:
-                if ($r->status != ENROL_USER_SUSPENDED) {
-                    $trace->output("suspending: {$r->userid} ==> {$instance->courseid}", 1);
-                    $plugin->update_user_enrol($instance, $r->userid, ENROL_USER_SUSPENDED);
-                }
-                break;
+        // Só a ação UNENROL chega aqui: a query já exclui customint3 = KEEP, e o
+        // formulário só oferece UNENROL/KEEP.
+        $trace->output("unenrolling: {$r->userid} ==> {$instance->courseid} via relationship {$instance->customint1}", 1);
+        $cparams = array('userid'=>$r->userid, 'contextid'=>$r->contextid, 'itemid'=>$r->enrolid, 'component'=>'enrol_relationship');
+        if($DB->count_records('role_assignments', $cparams) > 1) {
+            role_unassign($r->roleid, $r->userid, $r->contextid, 'enrol_relationship', $r->enrolid);
+        } else {
+            $plugin->unenrol_user($instance, $r->userid);
         }
     }
     $rs->close();
