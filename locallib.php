@@ -295,9 +295,8 @@ function enrol_relationship_unenrol_users(progress_trace $trace, $courseid = NUL
             $instances[$r->enrolid] = $DB->get_record('enrol', array('id'=>$r->enrolid));
         }
         $instance = $instances[$r->enrolid];
-        // Só a ação UNENROL chega aqui: a query já exclui customint3 = KEEP, e o
-        // formulário só oferece UNENROL/KEEP.
-        $trace->output("unenrolling: {$r->userid} ==> {$instance->courseid} via relationship {$instance->customint1}", 1);
+        // A query já exclui customint3 = KEEP; qualquer valor diferente de KEEP
+        // (incluindo valores legados) é tratado aqui como UNENROL.
         $cparams = array('userid'=>$r->userid, 'contextid'=>$r->contextid, 'itemid'=>$r->enrolid, 'component'=>'enrol_relationship');
         if($DB->count_records('role_assignments', $cparams) > 1) {
             role_unassign($r->roleid, $r->userid, $r->contextid, 'enrol_relationship', $r->enrolid);
