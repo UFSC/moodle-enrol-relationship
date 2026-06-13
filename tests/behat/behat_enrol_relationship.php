@@ -238,6 +238,11 @@ class behat_enrol_relationship extends behat_base {
         $course = $DB->get_record('course', array('shortname' => $shortname), '*', MUST_EXIST);
         $instance = $DB->get_record('enrol',
             array('courseid' => $course->id, 'enrol' => 'relationship'), '*', IGNORE_MULTIPLE);
+        if (!$instance) {
+            throw new ExpectationException(
+                "Nenhuma instância de enrolment relationship encontrada no curso {$shortname}.",
+                $this->getSession());
+        }
         $this->getSession()->visit($this->locate_path(
             '/enrol/relationship/edit.php?courseid=' . $course->id . '&id=' . $instance->id));
         $this->wait_for_pending_js();
