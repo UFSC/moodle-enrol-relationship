@@ -73,7 +73,7 @@ Não edite esses `idnumber` manualmente — o sync depende deles para reconcilia
 A sincronização roda nos seguintes momentos:
 
 - **Eventos do `local_relationship`**: criação/remoção/atualização de *relationships*, grupos e membros disparam atualizações incrementais (ver `db/events.php`).
-- **Cron do Moodle**: a cada hora (`$plugin->cron = 3600` em `version.php`), executa o sync completo como rede de segurança.
+- **Tarefa agendada do Moodle**: a cada 5 minutos (ver `db/tasks.php`), executa o sync completo como rede de segurança.
 - **Salvamento de instância**: ao criar ou editar uma instância no formulário, o sync é executado para o curso.
 
 ### Sincronização manual via CLI
