@@ -11,7 +11,7 @@
 #
 # Pré-requisitos:
 #   - Container moodle-local-<CORE_NAME> em execução (ou inicia automaticamente)
-#   - Imagem selenium/standalone-chrome:3.141.59 disponível (baixada automaticamente)
+#   - Imagem selenium/standalone-chrome:3.141.59-selenium disponível (baixada automaticamente)
 # =============================================================================
 
 set -e
