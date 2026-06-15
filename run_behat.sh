@@ -368,7 +368,7 @@ fi
 # Sem isto, a execução aborta pedindo `php init.php`; aqui forçamos o init sozinhos.
 # (Só faz sentido quando o ambiente já existe; a primeira inicialização é tratada
 # pelo branch "test -f BEHAT_YML" logo abaixo.)
-if [ -z "$INIT_FLAG" ] && exec_as_moodle "test -f '$BEHAT_DATAROOT/behatrun/behat/behat.yml'" 2>/dev/null; then
+if [ -z "$INIT_FLAG" ] && exec_as_moodle "test -f '$BEHAT_DATAROOT/behat/behat.yml'" 2>/dev/null; then
     BEHAT_VERSION_PROBE=$(exec_php_as_moodle_for_init "MOODLE_SKIP_COMPOSER_SELF_UPDATE=1 USE_ZEND_ALLOC=0 php -d memory_limit=512M '$MOODLE_ROOT_IN_CONTAINER/admin/tool/behat/cli/util.php' --enable 2>&1 || true")
     if echo "$BEHAT_VERSION_PROBE" | grep -qiE 'different version|Reinstall Behat'; then
         warn "Ambiente Behat inicializado para outra versão do Moodle. Forçando reinicialização..."
@@ -379,7 +379,7 @@ fi
 # ---------------------------------------------------------------------------
 # 4. Inicializar (ou reinicializar) o ambiente Behat
 # ---------------------------------------------------------------------------
-BEHAT_YML="$BEHAT_DATAROOT/behatrun/behat/behat.yml"
+BEHAT_YML="$BEHAT_DATAROOT/behat/behat.yml"
 
 if [ -n "$INIT_FLAG" ]; then
     log "Reinicializando ambiente Behat (--init)..."
