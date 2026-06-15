@@ -1,0 +1,6 @@
+# Cascade de branches/mirrors deste projeto. Veja `moodle-cascade --help`.
+# origin (HTTPS) e stream (SSH) são o MESMO repo GitHub UFSC; usamos só stream (SSH)
+# como mirror — origin fica de fora por ser duplicata.
+remotes = stream
+
+# Cadeia 30/38/401 é a cadeia-padrão do command (KNOWN); sem chain_extra.
