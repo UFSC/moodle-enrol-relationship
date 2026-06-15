@@ -107,7 +107,7 @@ class enrol_relationship_lib_testcase extends enrol_relationship_helper_testcase
     public function test_get_action_icons_throws_for_non_relationship_instance() {
         $instance = $this->create_instance();
         $instance->enrol = 'manual';
-        $this->setExpectedException('coding_exception');
+        $this->expectException(\coding_exception::class);
         $this->plugin->get_action_icons($instance);
     }
 
