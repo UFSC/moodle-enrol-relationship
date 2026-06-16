@@ -35,31 +35,34 @@ Feature: Sincronização de usuários e grupos pelo método de inscrição Relat
 
   @javascript
   Scenario: Sincronizar usuários e grupos inscreve e agrupa os membros do relationship
-    Given I am on the course "c1"
-    When I add "Relationship sync" enrolment method with:
+    Given I am on the relationship enrolment add form for course "c1"
+    When I set the following fields to these values:
       | Relationship             | R1                                |
       | Type of sync             | Synchronize both users and groups |
       | Action for removed users | Unenrol user from course          |
+    And I press "Add method"
     Then the course "c1" should have "2" users enrolled via relationship
     And the course "c1" should have a relationship group "Grupo A" with "2" members
 
   @javascript
   Scenario: Sincronizar apenas usuários inscreve sem criar grupos
-    Given I am on the course "c1"
-    When I add "Relationship sync" enrolment method with:
+    Given I am on the relationship enrolment add form for course "c1"
+    When I set the following fields to these values:
       | Relationship             | R1                               |
       | Type of sync             | Only synchronize user enrolments |
       | Action for removed users | Unenrol user from course         |
+    And I press "Add method"
     Then the course "c1" should have "2" users enrolled via relationship
     And the course "c1" should have no relationship groups
 
   @javascript
   Scenario: Editar a ação para "Desinscrever" remove quem saiu do relationship
-    Given I am on the course "c1"
-    And I add "Relationship sync" enrolment method with:
+    Given I am on the relationship enrolment add form for course "c1"
+    And I set the following fields to these values:
       | Relationship             | R1                                |
       | Type of sync             | Synchronize both users and groups |
       | Action for removed users | Keep user enrolled                |
+    And I press "Add method"
     And the course "c1" should have "2" users enrolled via relationship
     When user "u2" is removed from relationship "R1"
     And I edit the relationship enrolment method of course "c1"
@@ -79,10 +82,11 @@ Feature: Sincronização de usuários e grupos pelo método de inscrição Relat
       | u3       | User      | Three    | u3@example.com |
     And the relationship "R1" is linked to cohort "COH2" with role "student"
     And user "u3" is a member of group "Grupo A" via cohort "COH2" in relationship "R1"
-    And I am on the course "c1"
-    When I add "Relationship sync" enrolment method with:
+    And I am on the relationship enrolment add form for course "c1"
+    When I set the following fields to these values:
       | Relationship             | R1                                |
       | Type of sync             | Synchronize both users and groups |
       | Action for removed users | Unenrol user from course          |
+    And I press "Add method"
     Then the course "c1" should have "3" users enrolled via relationship
     And the course "c1" should have a relationship group "Grupo A" with "3" members

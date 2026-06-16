@@ -228,6 +228,28 @@ class behat_enrol_relationship extends behat_base {
     }
 
     /**
+     * Abre o formulário de ADIÇÃO de uma instância de enrol relationship no curso,
+     * navegando direto por URL (id=0 → edit.php trata como "adicionar instância").
+     *
+     * Este step substitui o passo do core "I add ... enrolment method with:", que
+     * depende de behat_navigation — contexto descartado da suíte default no host.
+     * Usa apenas primitivas que o plugin já executa (visit/locate_path/
+     * wait_for_pending_js), portanto é uniforme em todas as branches do cascade
+     * (confirmado contra o core 3.0). O preenchimento e a submissão do formulário
+     * ficam a cargo dos passos de formulário do core, em Gherkin, na própria feature.
+     *
+     * @Given /^I am on the relationship enrolment add form for course "([^"]*)"$/
+     * @param string $shortname
+     */
+    public function i_am_on_the_relationship_enrolment_add_form_for_course($shortname) {
+        global $DB;
+        $course = $DB->get_record('course', array('shortname' => $shortname), '*', MUST_EXIST);
+        $this->getSession()->visit($this->locate_path(
+            '/enrol/relationship/edit.php?courseid=' . $course->id));
+        $this->wait_for_pending_js();
+    }
+
+    /**
      * Abre o formulário de edição da instância de enrol relationship do curso.
      *
      * @Given /^I edit the relationship enrolment method of course "([^"]*)"$/
